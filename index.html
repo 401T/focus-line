@@ -1,4 +1,4 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>html{background:var(--bg)}body{margin:0}[hidden]{display:none!important}</style><meta name="theme-color" content="#1e1e1e"><link rel="manifest" href="manifest.webmanifest?v=20261031021856"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Focus Line"><link rel="icon" href="icons/icon-192.png?v=20261031021856"><link rel="apple-touch-icon" href="icons/icon-180.png?v=20261031021856"></head><body><title>Focus Line 関東</title>
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>html{background:var(--bg)}body{margin:0}[hidden]{display:none!important}</style><meta name="theme-color" content="#1e1e1e"><link rel="manifest" href="manifest.webmanifest?v=20261031082321"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Focus Line"><link rel="icon" href="icons/icon-192.png?v=20261031082321"><link rel="apple-touch-icon" href="icons/icon-180.png?v=20261031082321"></head><body><title>Focus Line 関東</title>
 
 <meta name="apple-mobile-web-app-title" content="Focus Line">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -5312,30 +5312,28 @@ function previewSound(id) {
     previewing = setTimeout(() => { previewing = null; if (run === r) runStop(); runSound(); }, 9000); }, 15000);
 }
 // ---------------- BGM ----------------
-// Fifteen original pieces for a small acoustic band: piano, ukulele and guitars, marimba, vibraphone, glockenspiel,
-// toy piano, steel pan, melodica, recorder, clarinet, horn, strings plucked and bowed, an upright bass, light drums,
-// and railway and everyday sounds (rail joints, a ticket gate, door air, rain, cans and coins). Each is a short story
-// — its tune, a development, a turn (a slower tempo, a stop, a far key), and the tune coming back a step higher with
-// everyone. They are composed note by note in src/web/bgm/songs and synthesised by src/web/bgm (instruments.js,
-// engine.js), then rendered ahead of time to audio/bgm/*.mp4 (AAC): computing the instruments as they play would be too
-// heavy for a phone. Here they are streamed one at a time through an <audio> element, so only the playing piece is
-// held in memory, and routed through the same gains as before (volume, and ducking under announcements).
+// Fifteen pieces by Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0
+// (https://creativecommons.org/licenses/by/4.0/): light acoustic music for ukulele, marimba, glockenspiel, toy piano,
+// clarinet, kalimba, steel pan and vibraphone, chosen for focus. Each is evened out to the same loudness and encoded to
+// AAC (audio/bgm/sNN.mp4), streamed one at a time through an <audio> element so only the playing piece is held in
+// memory, and routed through the same gains as the rest of the sound (volume, and ducking under announcements).
+// The credits are shown in the settings and in the music panel.
 const BGM_TRACKS = /*BGM_LIST*/[
-  {f: "s01",n: "始発の改札",key: "D major",bpm: "108→72→112",sec: 118.9},
-  {f: "s02",n: "各駅停車",key: "G major",bpm: "104→76→116",sec: 121.5},
-  {f: "s03",n: "レールのつぎめ",key: "E dorian",bpm: "118→96→126",sec: 100.6},
-  {f: "s04",n: "乗換案内",key: "A major",bpm: "126→138",sec: 87.4},
-  {f: "s05",n: "窓ぎわの午後",key: "E♭ major",bpm: "92→70→96",sec: 155.2},
-  {f: "s06",n: "雨の高架線",key: "B♭ dorian",bpm: "92→80→92",sec: 130.5},
-  {f: "s07",n: "地下鉄の青",key: "F♯ minor",bpm: "100→112",sec: 116.5},
-  {f: "s08",n: "鉄橋をわたる",key: "C major",bpm: "120→128",sec: 91.3},
-  {f: "s09",n: "踏切のむこう",key: "A♭ major",bpm: "108→84→108",sec: 113.2},
-  {f: "s10",n: "ホームの売店",key: "F major",bpm: "112→88→116",sec: 100.5},
-  {f: "s11",n: "海が見える単線",key: "E lydian・6/8",bpm: "98→80→104",sec: 101.2},
-  {f: "s12",n: "車庫のねむり",key: "A minor",bpm: "76→64→76",sec: 133.9},
-  {f: "s13",n: "切符の行方",key: "D mixolydian・7/8",bpm: "124→132",sec: 81.8},
-  {f: "s14",n: "夕焼けの快速",key: "D♭ major",bpm: "120→96→128",sec: 128.8},
-  {f: "s15",n: "終点、そのさき",key: "G major・3/4",bpm: "88→72→88",sec: 141.6},
+  {f: "s01", n: "Carefree", key: "ウクレレ・マリンバ・グロッケン", bpm: "96", sec: 205.1},
+  {f: "s02", n: "Life of Riley", key: "グロッケン・ウクレレ", bpm: "102", sec: 235.3},
+  {f: "s03", n: "Daily Beetle", key: "ウクレレ・オルゴール・トイピアノ", bpm: "100", sec: 316.8},
+  {f: "s04", n: "Carpe Diem", key: "クラリネット・ウクレレ・木琴", bpm: "96", sec: 295.0},
+  {f: "s05", n: "Rainbows", key: "マリンバ・ウクレレ・チェロ", bpm: "110", sec: 219.3},
+  {f: "s06", n: "Island Meet and Greet", key: "スチールパン・マリンバ", bpm: "100", sec: 216.9},
+  {f: "s07", n: "Glitter Blast", key: "グロッケン・フルート・ウクレレ", bpm: "100", sec: 177.8},
+  {f: "s08", n: "Cheery Monday", key: "ピアノ・グロッケン", bpm: "102", sec: 80.1},
+  {f: "s09", n: "Easy Lemon", key: "ギター・チェレスタ・マリンバ", bpm: "82", sec: 126.3},
+  {f: "s10", n: "Radio Martini", key: "クラリネット・フルート・ギター", bpm: "118", sec: 167.3},
+  {f: "s11", n: "Goblin Tinker Soldier Spy", key: "チューバ・鍵盤ハーモニカ・マリンバ", bpm: "101", sec: 136.0},
+  {f: "s12", n: "Night Cave", key: "カリンバ・マリンバ", bpm: "104", sec: 110.1},
+  {f: "s13", n: "Teddy Bear Waltz", key: "フルート・グロッケン・弦", bpm: "75", sec: 195.2},
+  {f: "s14", n: "Bossa Antigua", key: "ギター・ベース", bpm: "70", sec: 283.3},
+  {f: "s15", n: "Lobby Time", key: "ビブラフォン・ピアノ", bpm: "128", sec: 193.1},
 ];
 const trackSec = tr => tr.sec;
 const BGM_DIR = 'audio/bgm/';
@@ -5416,7 +5414,7 @@ function renderMusic() {
       <div class="mu-jk ${playing ? 'on' : ''}" style="--beat:${tr ? (60 / tr.bpm).toFixed(3) : 1}s">${muSleeve(ti ?? 0)}</div>
       <div class="mu-info">
         <b>${tr ? esc(tr.n) : st.set.bgm ? '集中すると流れます' : 'BGM'}</b>
-        <span>${tr ? `${pad(ti + 1)}・${tr.key}・${tr.bpm} BPM` : `${BGM_TRACKS.length} 曲・オリジナル`}</span>
+        <span>${tr ? `${pad(ti + 1)}・Kevin MacLeod・${tr.key}` : `${BGM_TRACKS.length} 曲・Kevin MacLeod（CC BY 4.0）`}</span>
         <div class="mu-prog"><i id="muBar"></i></div>
         <div class="mu-time n"><span id="muNow">0:00</span><span>${tr ? fmtMS(trackSec(tr)) : '--:--'}</span></div>
       </div></div>
@@ -8675,7 +8673,7 @@ function renderSet() {
       ${row('セーブコード', '記録をまるごと1行の文字列にします。コピーして保存し、別の端末やブラウザで貼り付けると引き継げます', `<span class="btnrow"><button class="btn sm" id="bCode">コピー</button><button class="btn sm" id="bPaste">貼り付け</button></span>`)}
       ${row('バックアップ', 'すべての記録をファイルに書き出す／読み込む', `<span class="btnrow"><button class="btn sm" id="bExp">書き出し</button><button class="btn sm" id="bImp">読み込み</button></span>`)}
       ${row('すべて消去', '制覇状況・記録・ポイントを初期化します', '<button class="btn sm danger" id="bReset">消去…</button>')}</div>
-    <p class="note">路線データ：国土数値情報（鉄道データ N02、国土交通省）を加工。駅ナンバリング・読み：Wikipedia／Wikidata。海岸線：Natural Earth。走行音：Web Audio で合成。車内放送の音声：Gemini TTS で生成。${NL} 路線・${hubs.length} 駅・${TOTAL_KM.toFixed(0)} km。<br>
+    <p class="note">路線データ：国土数値情報（鉄道データ N02、国土交通省）を加工。駅ナンバリング・読み：Wikipedia／Wikidata。海岸線：Natural Earth。走行音：Web Audio で合成。BGM：Kevin MacLeod（incompetech.com）「Carefree」「Life of Riley」「Daily Beetle」「Carpe Diem」「Rainbows」「Island Meet and Greet」「Glitter Blast」「Cheery Monday」「Easy Lemon」「Radio Martini」「Goblin Tinker Soldier Spy」「Night Cave」「Teddy Bear Waltz」「Bossa Antigua」「Lobby Time」、Creative Commons: By Attribution 4.0（creativecommons.org/licenses/by/4.0/）。音量をそろえて AAC に変換しています。車内放送の音声：Gemini TTS で生成。${NL} 路線・${hubs.length} 駅・${TOTAL_KM.toFixed(0)} km。<br>
     運賃：JR東日本は2026年3月改定後のIC運賃（幹線）、東京メトロ・都営地下鉄は現行のIC運賃表で、実測の線路距離から計算します。そのほかの事業者は概算です。車内放送のドアの開く側は架空です。<br>
     ショートカット：Space 開始／一時停止・F 列車を追従</p></div>`;
   const bind = (id, fn) => $(id) && $(id).addEventListener('change', e => { fn(e.target.value); save(true); renderTick(); });
