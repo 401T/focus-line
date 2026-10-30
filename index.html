@@ -1,4 +1,4 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>html{background:var(--bg)}body{margin:0}[hidden]{display:none!important}</style><meta name="theme-color" content="#1e1e1e"><link rel="manifest" href="manifest.webmanifest?v=20261031004002"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Focus Line"><link rel="icon" href="icons/icon-192.png?v=20261031004002"><link rel="apple-touch-icon" href="icons/icon-180.png?v=20261031004002"></head><body><title>Focus Line 関東</title>
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>html{background:var(--bg)}body{margin:0}[hidden]{display:none!important}</style><meta name="theme-color" content="#1e1e1e"><link rel="manifest" href="manifest.webmanifest?v=20261031021856"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Focus Line"><link rel="icon" href="icons/icon-192.png?v=20261031021856"><link rel="apple-touch-icon" href="icons/icon-180.png?v=20261031021856"></head><body><title>Focus Line 関東</title>
 
 <meta name="apple-mobile-web-app-title" content="Focus Line">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -5312,144 +5312,33 @@ function previewSound(id) {
     previewing = setTimeout(() => { previewing = null; if (run === r) runStop(); runSound(); }, 9000); }, 15000);
 }
 // ---------------- BGM ----------------
-// Eight original pieces of playful, minimal electronic music, built as sound design rather than as a band. The
-// material is small things, worked out sample by sample when the music starts: paper folded and flicked, a page
-// turned, a screw dropped on a desk, glass and wood tapped, a water drop, a clock, a switch, a stapler, a little motor;
-// set against short sine and FM tones, a dry square, digital clicks and a scrap of glitch. Every sound has a job: a
-// sheet of paper is the kick, a switch the snare, a tapped bolt the hi-hat, and a tune is passed between two of them.
-// Each piece runs Intro, A, Variation, Break, B, Outro (72 bars, two to three minutes): a few sounds at first, then
-// the groove, then parts of it taken away or bent (a bar left out, a 3-3-2 kick, a brief clash, a sudden mute), the
-// drums gone for a break where the small sounds come forward, the tune again on other sounds, and the parts leaving
-// one by one until a single sound closes it. The mix is dry and close: a very short room, and a dotted-eighth echo
-// used as part of the rhythm, each sound placed somewhere of its own across the stereo.
-const midi = n => 440 * Math.pow(2, (n - 69) / 12);
-const MODES = {ion: [0, 2, 4, 5, 7, 9, 11], lyd: [0, 2, 4, 6, 7, 9, 11], dor: [0, 2, 3, 5, 7, 9, 10], mix: [0, 2, 4, 5, 7, 9, 10]};
-const MODE_NAME = {ion: 'major', lyd: 'lydian', dor: 'dorian', mix: 'mixolydian'};
-//   prog: a chord every two bars, [degree, '7' (seventh) or '9' (added ninth)] · motif: d the degrees, r where they fall
-//   in the bar, A/B the two sounds that share it (in A and in B), alt the last note when it is changed · kit: the sound
-//   for each part (l and r: a percussion of their own on each side, in a cycle of another length) · beat: the patterns
-//   ('x' a hit, 'o' a soft one; bass in chord degrees) · pB: the kick pattern of the B section
-const BGM_TRACKS = [
-  {n: 'ペーパータイム', bpm: 124, key: 57, mode: 'lyd', prog: [[0, '7'], [4, '9'], [5, '7'], [3, '9']],
-    motif: {d: [4, 7, 6, 4, 1], r: 'x..x..x...x..x..', A: ['fm', 'drop'], B: ['glass', 'sine'], alt: 2},
-    kit: {pulse: 'paperKick', back: 'switch', tick: 'metalTap', tick2: 'digiClick', l: ['wood', 'x..x.x..x..x'], r: ['plastic', 'x...x..x..'], bass: 'bassSine', stab: 'ep', tex: ['paperFlip', 'paperFold', 'metalDrop'], sig: 'paperFlip'},
-    beat: {pulse: 'x.....x...x.....', back: '....x.......x..o', tick: '..x...x.x.x...x.', bass: '0.....0...4..0..', stab: '......x.......x.'}, pB: 'x..x......x..x..'},
-  {n: 'ガラスの時刻表', bpm: 118, key: 60, mode: 'ion', prog: [[0, '7'], [5, '9'], [3, '7'], [4, '9']],
-    motif: {d: [7, 9, 11, 9], r: 'x.x.....x...x...', A: ['glass', 'sine'], B: ['bell', 'square'], alt: 12},
-    kit: {pulse: 'dryKick', back: 'lightSnare', tick: 'clock', tick2: 'metalTap', l: ['tableTap', 'x..x..x..x..'], r: ['digiClick', 'x.x..x.x..'], bass: 'bassSine', stab: 'fm', tex: ['metalDrop', 'friction', 'paperFlip'], sig: 'clock'},
-    beat: {pulse: 'x.......x.x.....', back: '....x.......x...', tick: 'x.x.x.x.x.x.x.x.', bass: '0.......0.2.....', stab: '..x.......x.....'}, pB: 'x.....x.....x...'},
-  {n: 'スイッチバック', bpm: 132, key: 64, mode: 'dor', prog: [[0, '7'], [3, '9'], [0, '7'], [6, '9']],
-    motif: {d: [0, 3, 4], r: 'x...x.......x...', A: ['square', 'blipDrop'], B: ['fmMetal', 'drop'], alt: 6},
-    kit: {pulse: 'dryKick', back: 'switch', tick: 'digiClick', tick2: 'clock', l: ['stapler', 'x.....x..x..'], r: ['metalTap', 'x..x.x....'], bass: 'bassSq', stab: 'square', tex: ['glitch', 'switch', 'machine'], sig: 'switch'},
-    beat: {pulse: 'x..x...x..x.....', back: '....x..o....x...', tick: '.x.xx.x..x.x.xx.', bass: '0..0...0..3.....', stab: '.....x.....x....'}, pB: 'x.....xx...x....'},
-  {n: '水滴ダイヤ', bpm: 110, key: 65, mode: 'ion', prog: [[0, '9'], [3, '7'], [1, '7'], [4, '9']],
-    motif: {d: [4, 5, 7, 4, 2], r: 'x..x..x.x.......', A: ['drop', 'wood'], B: ['bell', 'sine'], alt: 0},
-    kit: {pulse: 'paperKick', back: 'tableTap', tick: 'clock', tick2: 'plastic', l: ['plastic', 'x..x..x..x..'], r: ['friction', 'x.......x.'], bass: 'bassSine', stab: 'ep', tex: ['paperFlip', 'metalDrop', 'machine'], sig: 'drop'},
-    beat: {pulse: 'x.......x.......', back: '....x.......x.x.', tick: '..x...x...x...x.', bass: '0.......0..4....', stab: '....x.......x...'}, pB: 'x.....x.x.......'},
-  {n: 'ネジと信号', bpm: 128, key: 62, mode: 'mix', prog: [[0, '7'], [6, '9'], [3, '7'], [0, '9']],
-    motif: {d: [7, 6, 4], r: 'x.x.x...........', A: ['fmMetal', 'glass'], B: ['square', 'drop'], alt: 9},
-    kit: {pulse: 'dryKick', back: 'lightSnare', tick: 'metalTap', tick2: 'digiClick', l: ['clock', 'x..x..x..x..'], r: ['plastic', 'x.x...x...'], bass: 'bassSq', stab: 'fm', tex: ['metalDrop', 'glitch', 'friction'], sig: 'metalDrop'},
-    beat: {pulse: 'x...x.....x.....', back: '....x.......x...', tick: 'x.xxx.x.x.xxx.x.', bass: '0...0.....0.4...', stab: '......x...x.....'}, pB: 'x.....x...x.x...'},
-  {n: '文房具の回送', bpm: 122, key: 67, mode: 'ion', prog: [[0, '7'], [2, '7'], [3, '9'], [4, '7']],
-    motif: {d: [0, 2, 4, 7], r: 'x..x..x..x......', A: ['wood', 'sine'], B: ['glass', 'blipDrop'], alt: 5},
-    kit: {pulse: 'paperKick', back: 'stapler', tick: 'digiClick', tick2: 'switch', l: ['switch', 'x...x..x..x.'], r: ['friction', 'x..x...x..'], bass: 'bassSine', stab: 'ep', tex: ['paperFold', 'paperFlip', 'stapler'], sig: 'stapler'},
-    beat: {pulse: 'x.....x..x......', back: '....x.......x...', tick: '..x.x.x...x.x.x.', bass: '0.....0..2......', stab: '...x.......x....'}, pB: 'x..x..x.........'},
-  {n: '小さな機関区', bpm: 136, key: 58, mode: 'lyd', prog: [[0, '9'], [1, '9'], [4, '7'], [3, '7']],
-    motif: {d: [4, 7, 8, 7, 11], r: 'x.x.x.x...x.....', A: ['sine', 'fm'], B: ['fmMetal', 'wood'], alt: 6},
-    kit: {pulse: 'dryKick', back: 'switch', tick: 'digiClick', tick2: 'metalTap', l: ['tableTap', 'x.x..x.x..x.'], r: ['clock', 'x...x...x.'], bass: 'bassSq', stab: 'square', tex: ['machine', 'glitch', 'metalDrop'], sig: 'machine'},
-    beat: {pulse: 'x..x..x...x.....', back: '....x.......x...', tick: 'xxx.x.xxx.x.x.xx', bass: '0..0..0...4.....', stab: '..x.....x.......'}, pB: 'x.x...x...x.....'},
-  {n: '終電の余白', bpm: 104, key: 63, mode: 'ion', prog: [[0, '7'], [5, '9'], [3, '7'], [4, '9']],
-    motif: {d: [9, 7, 4], r: 'x.....x...x.....', A: ['bell', 'glass'], B: ['fm', 'drop'], alt: 11},
-    kit: {pulse: 'paperKick', back: 'tableTap', tick: 'clock', tick2: 'digiClick', l: ['plastic', 'x.....x.....'], r: ['digiClick', 'x....x....'], bass: 'bassSine', stab: 'fm', tex: ['paperFlip', 'friction', 'metalDrop'], sig: 'bell'},
-    beat: {pulse: 'x.........x.....', back: '....x.......x...', tick: '..x.......x.....', bass: '0.........0.....', stab: '........x.......'}, pB: 'x.....x.........'},
+// Fifteen original pieces for a small acoustic band: piano, ukulele and guitars, marimba, vibraphone, glockenspiel,
+// toy piano, steel pan, melodica, recorder, clarinet, horn, strings plucked and bowed, an upright bass, light drums,
+// and railway and everyday sounds (rail joints, a ticket gate, door air, rain, cans and coins). Each is a short story
+// — its tune, a development, a turn (a slower tempo, a stop, a far key), and the tune coming back a step higher with
+// everyone. They are composed note by note in src/web/bgm/songs and synthesised by src/web/bgm (instruments.js,
+// engine.js), then rendered ahead of time to audio/bgm/*.mp4 (AAC): computing the instruments as they play would be too
+// heavy for a phone. Here they are streamed one at a time through an <audio> element, so only the playing piece is
+// held in memory, and routed through the same gains as before (volume, and ducking under announcements).
+const BGM_TRACKS = /*BGM_LIST*/[
+  {f: "s01",n: "始発の改札",key: "D major",bpm: "108→72→112",sec: 118.9},
+  {f: "s02",n: "各駅停車",key: "G major",bpm: "104→76→116",sec: 121.5},
+  {f: "s03",n: "レールのつぎめ",key: "E dorian",bpm: "118→96→126",sec: 100.6},
+  {f: "s04",n: "乗換案内",key: "A major",bpm: "126→138",sec: 87.4},
+  {f: "s05",n: "窓ぎわの午後",key: "E♭ major",bpm: "92→70→96",sec: 155.2},
+  {f: "s06",n: "雨の高架線",key: "B♭ dorian",bpm: "92→80→92",sec: 130.5},
+  {f: "s07",n: "地下鉄の青",key: "F♯ minor",bpm: "100→112",sec: 116.5},
+  {f: "s08",n: "鉄橋をわたる",key: "C major",bpm: "120→128",sec: 91.3},
+  {f: "s09",n: "踏切のむこう",key: "A♭ major",bpm: "108→84→108",sec: 113.2},
+  {f: "s10",n: "ホームの売店",key: "F major",bpm: "112→88→116",sec: 100.5},
+  {f: "s11",n: "海が見える単線",key: "E lydian・6/8",bpm: "98→80→104",sec: 101.2},
+  {f: "s12",n: "車庫のねむり",key: "A minor",bpm: "76→64→76",sec: 133.9},
+  {f: "s13",n: "切符の行方",key: "D mixolydian・7/8",bpm: "124→132",sec: 81.8},
+  {f: "s14",n: "夕焼けの快速",key: "D♭ major",bpm: "120→96→128",sec: 128.8},
+  {f: "s15",n: "終点、そのさき",key: "G major・3/4",bpm: "88→72→88",sec: 141.6},
 ];
-// each piece's level, measured, so that one is not louder than the next
-const BGM_VOL = [.53, .7, .93, 1, .76, .96, .63, 1];
-const BGM_FORM = [['intro', 8], ['a', 16], ['var', 16], ['brk', 8], ['b', 16], ['out', 8]];
-const BGM_BARS = BGM_FORM.reduce((a, [, n]) => a + n, 0);
-const trackSec = tr => BGM_BARS * 16 * 60 / tr.bpm / 4;
-function bgmWhere(bar) { let b = bar; for (const [s, n] of BGM_FORM) { if (b < n) return [s, b]; b -= n; } return ['end', 0]; }
-// how loud each sound sits in the mix (the recordings are all made to the same peak)
-const BGM_GAIN = {dryKick: .2, paperKick: .22, lightSnare: .3, switch: .34, wood: .3, metalTap: .13, tableTap: .34, digiClick: .1, clock: .16, plastic: .22,
-  stapler: .3, friction: .12, paperFlip: .2, paperFold: .2, metalDrop: .17, machine: .12, glitch: .1, glass: .2, drop: .26, bell: .17, sine: .22, fm: .19,
-  fmMetal: .13, square: .11, blipDrop: .17, ep: .17, bassSine: .13, bassSq: .09};
-// The sounds, made once per audio context. Each is a short mono recording at full scale; pitched ones are made at a
-// reference pitch (ref, Hz) and played faster or slower for each note.
-function bgmKit(c) {
-  if (c._bgmKit) return c._bgmKit;
-  const sr = c.sampleRate, K = {}, N = s => Math.floor(sr * s);
-  let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647, wn = () => rnd() * 2 - 1;
-  const make = (name, sec, fn, ref = 0) => {
-    const d = new Float32Array(N(sec)); fn(d);
-    let pk = 0; for (let i = 0; i < d.length; i++) pk = Math.max(pk, Math.abs(d[i]));
-    if (pk) for (let i = 0; i < d.length; i++) d[i] /= pk;
-    const f = Math.min(d.length, N(.003)); for (let i = 0; i < f; i++) d[d.length - 1 - i] *= i / f;       // no click at the end
-    const b = c.createBuffer(1, d.length, sr); b.copyToChannel(d, 0); b.ref = ref; K[name] = b;
-  };
-  // struck modes: [Hz, level, time to die away (s)], from a start time
-  const modes = (d, list, at = 0) => { for (const [f, a, dec] of list) { const k = 6.9 / dec, w = TAU * f / sr, p = rnd() * 6.28, s0 = N(at);
-    for (let j = 0, n = Math.min(d.length - s0, N(dec * 1.1)); j < n; j++) d[s0 + j] += a * Math.sin(p + w * j) * Math.exp(-k * j / sr) * Math.min(1, j / (sr * .0008)); } };
-  // a two-pole filter on a signal (RBJ biquad)
-  const biq = (type, f, q) => { const w = TAU * f / sr, al = Math.sin(w) / (2 * q), cw = Math.cos(w); let b0, b1, b2;
-    if (type === 'lp') { b0 = (1 - cw) / 2; b1 = 1 - cw; b2 = b0; } else if (type === 'hp') { b0 = (1 + cw) / 2; b1 = -(1 + cw); b2 = b0; } else { b0 = al; b1 = 0; b2 = -al; }
-    const a0 = 1 + al, a1 = -2 * cw, a2 = 1 - al; let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
-    return x => { const y = (b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2) / a0; x2 = x1; x1 = x; y2 = y1; y1 = y; return y; }; };
-  const burst = (d, at, len, filt, dec, amp = 1) => { const s0 = N(at); for (let j = 0; j < N(len) && s0 + j < d.length; j++) d[s0 + j] += amp * filt(wn()) * Math.exp(-j / sr / dec); };
-  const click = (d, at, amp = 1) => { const i = N(at); if (i < d.length) d[i] += amp; if (i + 1 < d.length) d[i + 1] -= amp * .7; };
-  // ---- found sounds
-  make('dryKick', .25, d => { let ph = 0; for (let i = 0; i < d.length; i++) { const t = i / sr; ph += TAU * (48 + 95 * Math.exp(-t / .016)) / sr; d[i] = Math.sin(ph) * Math.exp(-t / .07); } burst(d, 0, .004, biq('hp', 2000, .7), .0008, .5); });
-  make('paperKick', .22, d => { burst(d, 0, .08, biq('lp', 170, .8), .028, 9); for (let i = 0; i < d.length; i++) d[i] += .5 * Math.sin(TAU * 68 * i / sr) * Math.exp(-i / sr / .045); for (let k = 0; k < 7; k++) burst(d, rnd() * .04, .004, biq('bp', 2500 + rnd() * 2500, 4), .001, .25); });
-  make('lightSnare', .22, d => { burst(d, 0, .2, biq('bp', 2300, .9), .045, 3); modes(d, [[190, .7, .08], [340, .3, .05]]); click(d, 0, .6); });
-  make('switch', .09, d => { modes(d, [[1250, 1, .018], [2900, .6, .01], [4800, .4, .006]]); click(d, 0, .8); modes(d, [[1400, .45, .012], [3300, .3, .006]], .03); click(d, .03, .35); });
-  make('wood', .2, d => { modes(d, [[440, 1, .09], [440 * 2.57, .45, .035], [440 * 4.1, .15, .015]]); burst(d, 0, .006, biq('lp', 1500, .7), .0015, .4); }, 440);
-  make('metalTap', .18, d => { modes(d, [[3150, 1, .11], [4730, .7, .07], [6880, .5, .045], [8320, .3, .03]]); click(d, 0, .5); });
-  make('tableTap', .12, d => { burst(d, 0, .02, biq('lp', 900, .7), .005, 3); modes(d, [[170, .8, .05], [410, .3, .03]]); });
-  make('digiClick', .02, d => { click(d, 0, 1); for (let i = 0; i < d.length; i++) d[i] += .4 * Math.sin(TAU * 7800 * i / sr) * Math.exp(-i / sr / .0018); });
-  make('clock', .05, d => { for (const [at, a] of [[0, 1], [.011, .55]]) modes(d, [[3600, a, .012], [5200, a * .6, .008], [2100, a * .4, .01]], at); });
-  make('plastic', .08, d => { modes(d, [[880, 1, .025], [1390, .7, .018], [2240, .5, .012], [3380, .3, .008]]); click(d, 0, .4); });
-  make('stapler', .12, d => { burst(d, 0, .03, biq('lp', 500, .7), .008, 3); modes(d, [[220, .6, .04]]); modes(d, [[2600, 1, .02], [4100, .5, .01]], .045); click(d, .045, .6); });
-  make('friction', .16, d => { const f = biq('bp', 2600, 3); for (let i = 0; i < d.length; i++) { const t = i / sr; d[i] = f(wn()) * (.5 + .5 * Math.sin(TAU * 45 * t)) * Math.sin(Math.PI * t / .16); } });
-  // a page turned: the rustle rises in pitch as the sheet bends and flutters (a band of noise swept 0.9 to 3.5 kHz)
-  make('paperFlip', .36, d => { let lo = 0, bd = 0; for (let i = 0; i < d.length; i++) { const t = i / sr, f1 = 2 * Math.sin(Math.PI * (900 + 2600 * t / .36) / sr);
-    const hi = wn() - lo - .8 * bd; bd += f1 * hi; lo += f1 * bd; d[i] = bd * Math.sin(Math.PI * Math.min(1, t / .36)) * (.6 + .4 * Math.sin(TAU * 31 * t)); } });
-  make('paperFold', .45, d => { for (let k = 0; k < 42; k++) { const at = .4 * Math.pow(rnd(), .8); modes(d, [[2000 + rnd() * 4500, .3 + rnd() * .7, .002 + rnd() * .004]], at); } burst(d, .36, .05, biq('lp', 400, .7), .012, 2.5); });
-  make('metalDrop', .9, d => { [[0, 1], [.16, .7], [.28, .5], [.37, .35], [.435, .25], [.48, .15], [.51, .1]].forEach(([at, a]) => modes(d, [[2380, a, .25], [3660, a * .6, .15], [5170, a * .4, .09], [7400, a * .2, .05]], at)); });
-  make('machine', .6, d => { for (let i = 0; i < d.length; i++) { const t = i / sr; let v = 0; for (let k = 1; k <= 16; k++) v += Math.sin(TAU * 96 * k * t) / k; d[i] = v * .25 * Math.min(1, t / .05, (.6 - t) / .05); } for (let at = 0; at < .58; at += 1 / 23) modes(d, [[1800, .4, .006]], at); });
-  // ---- tones
-  make('glass', 1, d => modes(d, [[440, 1, .8], [440 * 2.32, .5, .35], [440 * 4.25, .25, .15], [440 * 6.9, .1, .07]]), 440);
-  make('drop', .12, d => { let ph = 0; for (let i = 0; i < d.length; i++) { const t = i / sr; ph += TAU * 440 * (1 + .7 * Math.min(1, t / .04)) / sr; d[i] = Math.sin(ph) * Math.exp(-t / .045) * Math.min(1, t / .001); } click(d, 0, .2); }, 440);
-  make('bell', 1.6, d => modes(d, [[440, 1, 1.5], [440 * 2.76, .45, .6], [440 * 5.4, .2, .25], [440 * 8.9, .08, .1]]), 440);
-  make('sine', .25, d => { for (let i = 0; i < d.length; i++) { const t = i / sr; d[i] = Math.sin(TAU * 440 * t) * Math.exp(-t / .06) * Math.min(1, t / .002); } }, 440);
-  make('fm', 1.6, d => { for (let i = 0; i < d.length; i++) { const t = i / sr, ix = 3.5 * Math.exp(-t / .25) + .3; d[i] = Math.sin(TAU * 440 * t + ix * Math.sin(TAU * 440 * 3.5 * t)) * Math.exp(-t / .6) * Math.min(1, t / .002); } }, 440);
-  make('fmMetal', .5, d => { for (let i = 0; i < d.length; i++) { const t = i / sr, ix = 7 * Math.exp(-t / .08) + .8; d[i] = Math.sin(TAU * 440 * t + ix * Math.sin(TAU * 440 * 1.414 * t)) * Math.exp(-t / .12) * Math.min(1, t / .001); } }, 440);
-  make('square', .2, d => { for (let i = 0; i < d.length; i++) { const t = i / sr; let v = 0; for (let k = 1; k <= 13; k += 2) v += Math.sin(TAU * 440 * k * t) / k; d[i] = v * Math.min(1, t / .001) * (t < .03 ? 1 : Math.exp(-(t - .03) / .04)); } }, 440);
-  make('blipDrop', .2, d => { let ph = 0; for (let i = 0; i < d.length; i++) { const t = i / sr; ph += TAU * 440 * (1 + Math.exp(-t / .012)) / sr; d[i] = Math.sin(ph) * Math.exp(-t / .06); } }, 440);
-  make('ep', 1, d => { for (let i = 0; i < d.length; i++) { const t = i / sr, ph = TAU * 440 * t; d[i] = (Math.sin(ph + 1.2 * Math.exp(-t / .3) * Math.sin(ph)) + .25 * Math.sin(14 * ph) * Math.exp(-t / .02)) * Math.exp(-t / .5) * Math.min(1, t / .002); } }, 440);
-  make('bassSine', .5, d => { for (let i = 0; i < d.length; i++) { const t = i / sr; d[i] = (Math.sin(TAU * 110 * t) + .25 * Math.sin(TAU * 220 * t)) * Math.exp(-t / .18) * Math.min(1, t / .003); } }, 110);
-  make('bassSq', .4, d => { const f = biq('lp', 650, .8); for (let i = 0; i < d.length; i++) { const t = i / sr; let v = 0; for (let k = 1; k <= 15; k += 2) v += Math.sin(TAU * 110 * k * t) / k; d[i] = f(v) * Math.exp(-t / .12) * Math.min(1, t / .002); } }, 110);
-  make('glitch', .12, d => { let i = 0; while (i < d.length) { const seg = N(.012 + rnd() * .02), f = 300 + rnd() * 2700, hold = 4 + Math.floor(rnd() * 12), a = .3 + rnd() * .7; let h = 0;
-    for (let j = 0; j < seg && i < d.length; j++, i++) { if (j % hold === 0) h = Math.round(Math.sin(TAU * f * j / sr) * 4) / 4; d[i] = h * a; } } });
-  K.rev = {}; return c._bgmKit = K;
-}
-function bgmRev(K, c, name) {
-  if (K.rev[name]) return K.rev[name];
-  const s = K[name], d = s.getChannelData(0).slice().reverse(), b = c.createBuffer(1, d.length, s.sampleRate); b.copyToChannel(d, 0); b.ref = s.ref; return K.rev[name] = b;
-}
-// one sound: at a pitch (f, for pitched sounds) or a speed (rate), forwards or reversed, cut short, stuttered (n
-// repeats of a slice), placed (pan) or swept across (sweep: from, to, seconds), with sends to the echo and the room
-function bgmPlayS(name, t, o = {}) {
-  const b = bgm, c = b.c, K = b.kit, s0 = K[name]; if (!s0) return;
-  const buf = o.rev ? bgmRev(K, c, name) : s0, rate = o.f && s0.ref ? o.f / s0.ref : (o.rate || 1);
-  const g = c.createGain(), pn = c.createStereoPanner();
-  g.gain.value = (o.g ?? 1) * (BGM_GAIN[name] ?? .2);
-  if (o.sweep) { pn.pan.setValueAtTime(o.sweep[0], t); pn.pan.linearRampToValueAtTime(o.sweep[1], t + o.sweep[2]); } else pn.pan.value = o.pan || 0;
-  g.connect(pn).connect(b.bus);
-  if (o.d) { const sg = c.createGain(); sg.gain.value = o.d; pn.connect(sg).connect(b.dly); }
-  if (o.r) { const rg = c.createGain(); rg.gain.value = o.r; pn.connect(rg).connect(b.room); }
-  const one = (at, dur) => { const s = c.createBufferSource(); s.buffer = buf; s.playbackRate.value = rate; s.connect(g); s.start(at, 0, dur); };
-  if (o.stut) for (let k = 0; k < o.stut[0]; k++) one(t + k * o.stut[1], o.stut[1] * .9);
-  else one(t, o.cut);
-}
+const trackSec = tr => tr.sec;
+const BGM_DIR = 'audio/bgm/';
 let bgm = null, bgmOrder = [], bgmManual = false, bgmWant = null, bgmHist = [];
 function bgmNextTrack() {
   if (bgmWant != null) { const w = bgmWant; bgmWant = null; return w; }
@@ -5457,49 +5346,36 @@ function bgmNextTrack() {
   return bgmOrder.shift();
 }
 function bgmLoad(b, ti) {
-  if (b.ti != null) bgmHist.push(b.ti);
-  const tr = BGM_TRACKS[ti]; Object.assign(b, {ti, tr, step: 0, bar: 0, abs: 0, nTick: 0, spStep: 60 / tr.bpm / 4, t0: b.next});
-  b.dl.delayTime.setValueAtTime(b.spStep * 3, b.c.currentTime); b.dr.delayTime.setValueAtTime(b.spStep * 3, b.c.currentTime);   // a dotted-eighth echo, in time
-  b.bus.gain.setValueAtTime(BGM_VOL[ti] ?? 1, b.next);
+  if (b.ti != null && b.ti !== ti) bgmHist.push(b.ti);
+  b.ti = ti; b.tr = BGM_TRACKS[ti];
+  b.el.src = BGM_DIR + b.tr.f + '.mp4';
+  const p = b.el.play(); if (p) p.catch(() => {});
   renderMusic();
 }
 function bgmStart() {
-  const c = audioCtx(), out = c.createGain(), duck = c.createGain(), bus = c.createGain(); out.gain.value = 0; duck.gain.value = 1;
-  bgm = {c, out, duck, bus, kit: bgmKit(c), next: c.currentTime + .3};
-  // a ping-pong echo, a dotted eighth apart, its repeats thinned top and bottom so they sit behind the dry sounds
-  const dly = c.createGain(), dl = c.createDelay(2), dr = c.createDelay(2), fb = c.createGain(), lo = c.createBiquadFilter(), hi = c.createBiquadFilter(), mg = c.createChannelMerger(2);
-  fb.gain.value = .32; lo.type = 'highpass'; lo.frequency.value = 350; hi.type = 'lowpass'; hi.frequency.value = 5000;
-  dly.connect(lo).connect(hi).connect(dl); dl.connect(dr); dr.connect(fb).connect(dl); dl.connect(mg, 0, 0); dr.connect(mg, 0, 1); mg.connect(bus);
-  // a very short room: a small table-top space, a quarter of a second
-  const room = c.createConvolver(), len = Math.floor(c.sampleRate * .28), rb = c.createBuffer(2, len, c.sampleRate);
-  for (let ch = 0; ch < 2; ch++) { const d = rb.getChannelData(ch); for (let i = 0; i < len; i++) { const t = i / c.sampleRate; d[i] = (Math.random() * 2 - 1) * Math.exp(-t / .05) * (t < .002 ? 0 : 1); } }
-  room.buffer = rb; const rw = c.createGain(); rw.gain.value = .5; room.connect(rw).connect(bus);
-  // clean and open: the sub-bass trimmed, and a limiter that only catches the odd peak
-  const hp = c.createBiquadFilter(), lim = c.createDynamicsCompressor(), trim = c.createGain();
-  hp.type = 'highpass'; hp.frequency.value = 32; lim.threshold.value = -4; lim.knee.value = 2; lim.ratio.value = 12; lim.attack.value = .002; lim.release.value = .12; trim.gain.value = .85;
-  bus.connect(duck); duck.connect(hp).connect(lim).connect(trim).connect(out); out.connect(c.destination);
-  Object.assign(bgm, {dly, dl, dr, room});
+  const c = audioCtx(), el = new Audio(), duck = c.createGain(), out = c.createGain();
+  el.preload = 'auto'; out.gain.value = 0; duck.gain.value = 1;
+  const src = c.createMediaElementSource(el); src.connect(duck).connect(out).connect(c.destination);
+  bgm = {c, el, src, duck, out, ti: null};
+  el.addEventListener('ended', () => { if (bgm && bgm.el === el) bgmLoad(bgm, bgmNextTrack()); });
   bgmLoad(bgm, bgmNextTrack());
-  bgm.timer = setInterval(bgmSchedule, 100);
 }
 function bgmStop() {
   const b = bgm; bgm = null; if (!b) return;
-  clearInterval(b.timer); const t = b.c.currentTime; b.out.gain.cancelScheduledValues(t); b.out.gain.setTargetAtTime(0, t, .5);
-  setTimeout(() => b.out.disconnect(), 3000); renderMusic();
+  const t = b.c.currentTime; b.out.gain.cancelScheduledValues(t); b.out.gain.setTargetAtTime(0, t, .4);
+  setTimeout(() => { b.el.pause(); b.el.removeAttribute('src'); b.el.load(); b.out.disconnect(); }, 1800); renderMusic();
 }
-function bgmSkip() { if (!bgm) return; bgm.next = bgm.c.currentTime + .3; bgmLoad(bgm, bgmNextTrack()); }
+function bgmSkip() { if (bgm) bgmLoad(bgm, bgmNextTrack()); }
 function bgmPrev() {
   if (!bgm) return;
-  const early = bgm.c.currentTime - bgm.t0 < 4 && bgmHist.length;      // early in a piece: the one before; later: this one again
-  const back = early ? bgmHist.pop() : bgm.ti;
-  if (early) bgmOrder.unshift(bgm.ti);
-  bgm.next = bgm.c.currentTime + .3; bgm.ti = null; bgmLoad(bgm, back);
+  if (bgm.el.currentTime < 4 && bgmHist.length) { bgmOrder.unshift(bgm.ti); const back = bgmHist.pop(); bgm.ti = null; bgmLoad(bgm, back); }
+  else { bgm.el.currentTime = 0; renderMusic(); }      // later in a piece: from its start
 }
 function bgmPlay(ti) {
   try { audioCtx().resume(); } catch (e) {}
   if (!st.set.bgm) { st.set.bgm = true; st.set.bgmVol = st.set.bgmVol || 2; save(true); }
   bgmManual = true;
-  if (ti != null) { if (bgm) { bgm.next = bgm.c.currentTime + .3; bgmLoad(bgm, ti); } else bgmWant = ti; }
+  if (ti != null) { if (bgm) bgmLoad(bgm, ti); else bgmWant = ti; }
   bgmTick(); renderMusic();
 }
 function bgmHalt() { bgmManual = false; st.set.bgm = false; save(true); bgmTick(); renderMusic(); }
@@ -5510,109 +5386,8 @@ function bgmTick() {
   const c = bgm.c, level = [0, .45, .8, 1.25][st.set.bgmVol || 2] || .8;
   bgm.out.gain.setTargetAtTime(level, c.currentTime, 1.2);
   bgm.duck.gain.setTargetAtTime(voicing ? .35 : 1, c.currentTime, .3);
+  if (bgm.el.paused && bgm.el.src) { const p = bgm.el.play(); if (p) p.catch(() => {}); }
   renderMusicProgress();
-}
-function bgmSchedule() {
-  const b = bgm; if (!b) return;
-  while (b.next < b.c.currentTime + .3) {
-    if (b.bar >= BGM_BARS) { bgmLoad(b, bgmNextTrack()); continue; }
-    bgmStep(b, b.next);
-    b.next += b.spStep; b.step++; b.abs++;
-    if (b.step >= 16) { b.step = 0; b.bar++; }
-  }
-}
-// one sixteenth of the piece: which parts play, and how, is decided by where it is in the form
-function bgmStep(b, t) {
-  const tr = b.tr, K = tr.kit, B = tr.beat, s = b.step, sp = b.spStep, [sec, bi] = bgmWhere(b.bar), sc = MODES[tr.mode];
-  const note = deg => tr.key + 12 * Math.floor(deg / 7) + sc[((deg % 7) + 7) % 7];
-  const [croot, ext] = tr.prog[Math.floor(b.bar / 2) % tr.prog.length];
-  const at = (p, i = s) => p[i % p.length];
-  // the parts in play
-  const on = {};
-  const all = ['pulse', 'back', 'tick', 'l', 'r', 'bass', 'motif', 'stab'];
-  if (sec === 'intro') Object.assign(on, {tex: 1, tick: bi >= 2, motif: bi >= 4, l: bi >= 4, bass: bi >= 6, r: bi >= 6});
-  else if (sec === 'a') all.forEach(k => on[k] = k !== 'stab' || bi >= 8);
-  else if (sec === 'var' || sec === 'b') all.forEach(k => on[k] = 1);
-  else if (sec === 'brk') Object.assign(on, {tick: 1, motif: 1, tex: 1});
-  else if (sec === 'out') ['stab', 'r', 'motif', 'l', 'bass', 'back', 'pulse', 'tick'].forEach((k, i) => on[k] = bi <= i);
-  // a sudden silence: the last beat of the fourth break bar, and of the variation (where only a stuttered click is left)
-  if (sec === 'brk' && bi === 3 && s >= 12) return;
-  if (sec === 'var' && bi === 15 && s >= 12) { if (s === 12) bgmPlayS(K.tick, t, {stut: [8, sp / 2], pan: .3, g: .9}); return; }
-  if (sec === 'out' && bi === 7) { if (s === 0) bgmPlayS(K.sig, t, {f: b.kit[K.sig].ref ? midi(note(7) + 12) : 0, g: 1.2, r: .3}); return; }   // one sound to close
-  // pulse: the piece's kick; in the variation a beat goes missing every fourth bar and the second half runs 3-3-2;
-  // the B section has a pattern of its own
-  if (on.pulse) {
-    let p = sec === 'b' ? tr.pB : sec === 'var' && bi >= 8 ? 'x.....x.....x...' : B.pulse;
-    const gone = sec === 'var' && bi % 4 === 3 && s >= 8;
-    if (!gone && at(p) === 'x') bgmPlayS(K.pulse, t, {g: s === 0 ? 1 : .85});
-  }
-  // the back beat, and on a predictable beat an unpredictable sound: the snare on the last beat of every fourth bar is
-  // replaced by one of the piece's found sounds, at a new pitch each time
-  if (on.back) {
-    const c2 = at(B.back);
-    if (c2 !== '.') {
-      if (bi % 4 === 3 && s === 12 && sec !== 'out') bgmPlayS(K.tex[(b.bar >> 2) % K.tex.length], t, {rate: [.8, 1.25, 1.5, .67][(b.bar >> 2) % 4], pan: (b.bar & 4) ? .5 : -.5, cut: sp * 3, r: .2});
-      else bgmPlayS(K.back, t, {g: c2 === 'o' ? .45 : 1, pan: -.08, r: .12});
-    }
-  }
-  // ticks: left and right in turn; every other bar its last hit is a different sound; denser in the second half of
-  // the variation (the gaps filled with soft hits); only the beats in the break and at the start
-  if (on.tick) {
-    let c2 = at(B.tick);
-    if (sec === 'var' && bi >= 8 && c2 === '.' && (s * 7 + b.bar) % 3 === 0) c2 = 'o';
-    if ((sec === 'intro' || sec === 'brk') && s % 8) c2 = '.';
-    if (c2 !== '.') {
-      const swap = b.bar % 2 === 1 && s === B.tick.lastIndexOf('x');
-      b.nTick++;
-      bgmPlayS(swap ? K.tick2 : K.tick, t, {g: c2 === 'o' ? .45 : 1, pan: b.nTick % 2 ? .55 : -.55, rate: sec === 'b' ? 1.12 : 1});
-    }
-  }
-  // the two side percussions, in cycles of their own length (12 and 10 steps against the bar's 16)
-  if (on.l && at(K.l[1], b.abs) === 'x' && !(sec === 'brk' && b.bar % 2)) bgmPlayS(K.l[0], t, {pan: -.72, g: .9, r: .1});
-  if (on.r && at(K.r[1], b.abs) === 'x') bgmPlayS(K.r[0], t, {pan: .72, g: .9, r: .1});
-  // bass: short, dry, on the chord; only its first note in the intro
-  if (on.bass) {
-    const c2 = at(B.bass);
-    if (c2 !== '.' && !(sec === 'intro' && s)) bgmPlayS(K.bass, t, {f: midi(note(croot + +c2) - 24), cut: K.bass === 'bassSq' ? sp * 1.6 : undefined});
-  }
-  // the tune: a few notes shared between two sounds in turn; the second of each pair of bars plays only its opening;
-  // its last note changes now and then; the break plays it backwards on one sound, every other bar
-  if (on.motif) {
-    const m = tr.motif, n = m.r.slice(0, s).split('x').length - 1;
-    if (m.r[s] === 'x' && n < m.d.length) {
-      const odd = b.bar % 2 === 1, last = n === m.d.length - 1;
-      const voices = sec === 'b' || sec === 'out' ? m.B : m.A;
-      let play = !odd || n < 2, deg = m.d[n];
-      if (sec === 'intro') play = n < 2 && !odd;
-      if (sec === 'brk') play = !odd;
-      if (last && ((sec === 'a' && bi % 4 === 3) || ((sec === 'var' || sec === 'b') && odd))) deg = m.alt;
-      if (play) {
-        const v = sec === 'brk' ? voices[0] : voices[n % voices.length], f = midi(note(deg) + 12);
-        bgmPlayS(v, t, {f, pan: sec === 'brk' ? 0 : n % 2 ? .32 : -.32, rev: sec === 'brk', d: last ? .35 : .12, r: .15, g: sec === 'brk' ? .8 : 1});
-        // in the middle of B the tune is answered, mirrored and an octave up, on the other sound
-        if (sec === 'b' && bi >= 8 && bi < 12) bgmPlayS(voices[(n + 1) % voices.length], t + sp * 2, {f: midi(note(2 * m.d[0] - deg) + 24), pan: n % 2 ? -.6 : .6, g: .6, d: .45});
-      }
-    }
-  }
-  // short chords, never held: the chord of the bar with its seventh or ninth; once in the variation a semitone rubs
-  if (on.stab && at(B.stab) === 'x' && (sec !== 'a' || b.bar % 2 === 0)) {
-    const tones = ext === '9' ? [0, 2, 4, 8] : [0, 2, 4, 6];
-    tones.forEach((k, i) => bgmPlayS(K.stab, t + i * .004, {f: midi(note(croot + k) + 12), g: .55, pan: (i - 1.5) * .18, cut: K.stab === 'square' ? sp * .9 : sp * 2, d: .25}));
-    if (sec === 'var' && bi === 7) bgmPlayS(K.stab, t, {f: midi(note(croot) + 13), g: .4, cut: sp * .8, pan: .4});
-  }
-  // the found sounds, as events: one at the start of every other intro bar, two a bar in the break (at new speeds,
-  // sometimes backwards, wide), a glitch swept across the stereo every fourth bar of the variation
-  if (on.tex) {
-    const k = (b.bar + (s >> 2)) % K.tex.length;
-    if (sec === 'intro' && bi % 2 === 0 && s === (bi % 4 ? 10 : 0)) bgmPlayS(K.tex[k], t, {pan: bi % 4 ? .6 : -.6, r: .25});
-    if (sec === 'brk' && (s === 4 || s === 11)) bgmPlayS(K.tex[k], t, {rate: [.7, 1, 1.4, 1.2][(b.bar + s) % 4], rev: (b.bar + s) % 3 === 0, pan: s === 4 ? -.75 : .75, g: 1.3, r: .3});
-  }
-  if (sec === 'var' && bi % 4 === 1 && s === 14) bgmPlayS('glitch', t, {sweep: [-.9, .9, sp * 2], g: .9});
-  if (sec === 'brk' && bi === 7 && s === 0) {             // a chord swelling in backwards, ending exactly on B's first beat
-    const tones = ext === '9' ? [0, 2, 4, 8] : [0, 2, 4, 6];
-    tones.forEach((k2, i) => { const f = midi(note(croot + k2) + 12), dur = b.kit.fm.duration * 440 / f;
-      bgmPlayS('fm', t + Math.max(0, 16 * sp - dur), {f, rev: true, g: .5, pan: (i - 1.5) * .3}); });
-  }
 }
 // ---- the BGM panel: a sleeve for the piece (flat shapes that move in time while it plays), its title, key and tempo,
 // how far it has got, the transport, the volume, and the list
@@ -5623,8 +5398,8 @@ const fmtMS = sec => `${Math.floor(sec / 60)}:${pad(Math.floor(sec % 60))}`;
 const KEYS = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
 const MU_COL = [['#005aff', '#f6aa00'], ['#ff4b00', '#4dc4ff'], ['#03af7a', '#ff8082'], ['#990099', '#f6aa00'], ['#f6aa00', '#005aff'],
   ['#4dc4ff', '#ff4b00'], ['#ff8082', '#03af7a'], ['#804000', '#4dc4ff'], ['#005aff', '#ff8082'], ['#03af7a', '#990099']];
-function muSleeve(i) {             // ten simple compositions: circles, half circles, bars, a triangle, a grid of dots
-  const [a, b] = MU_COL[i % MU_COL.length], k = i % 5;
+function muSleeve(i) {             // fifteen simple compositions: five shapes in ten colour pairs, no two sleeves alike
+  const [a, b] = MU_COL[i % MU_COL.length], k = Math.floor(i / 3) % 5;
   const shapes = [
     `<circle class="s1" cx="22" cy="24" r="13" fill="${a}"/><circle class="s2" cx="42" cy="40" r="9" fill="${b}"/>`,
     `<path class="s1" d="M8 44a24 24 0 0 1 48 0z" fill="${a}"/><rect class="s2" x="26" y="12" width="12" height="12" fill="${b}"/>`,
@@ -5641,7 +5416,7 @@ function renderMusic() {
       <div class="mu-jk ${playing ? 'on' : ''}" style="--beat:${tr ? (60 / tr.bpm).toFixed(3) : 1}s">${muSleeve(ti ?? 0)}</div>
       <div class="mu-info">
         <b>${tr ? esc(tr.n) : st.set.bgm ? '集中すると流れます' : 'BGM'}</b>
-        <span>${tr ? `${pad(ti + 1)}・${KEYS[tr.key % 12]} ${MODE_NAME[tr.mode]}・${tr.bpm} BPM` : `${BGM_TRACKS.length} 曲・オリジナル`}</span>
+        <span>${tr ? `${pad(ti + 1)}・${tr.key}・${tr.bpm} BPM` : `${BGM_TRACKS.length} 曲・オリジナル`}</span>
         <div class="mu-prog"><i id="muBar"></i></div>
         <div class="mu-time n"><span id="muNow">0:00</span><span>${tr ? fmtMS(trackSec(tr)) : '--:--'}</span></div>
       </div></div>
@@ -5662,7 +5437,7 @@ function renderMusic() {
 function renderMusicProgress() {
   const bar = $('#muBar'); if (!bar) return;
   if (!bgm) { bar.style.width = '0%'; return; }
-  const el = Math.max(0, bgm.c.currentTime - bgm.t0), tot = trackSec(bgm.tr);
+  const el = bgm.el.currentTime || 0, tot = trackSec(bgm.tr);
   bar.style.width = Math.min(100, el / tot * 100) + '%'; setText($('#muNow'), fmtMS(Math.min(el, tot)));
 }
 setInterval(renderMusicProgress, 1000);
