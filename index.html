@@ -1,4 +1,4 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>html{background:var(--bg)}body{margin:0}[hidden]{display:none!important}</style><meta name="theme-color" content="#1e1e1e"><link rel="manifest" href="manifest.webmanifest?v=20261030233354"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Focus Line"><link rel="icon" href="icons/icon-192.png?v=20261030233354"><link rel="apple-touch-icon" href="icons/icon-180.png?v=20261030233354"></head><body><title>Focus Line 関東</title>
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>html{background:var(--bg)}body{margin:0}[hidden]{display:none!important}</style><meta name="theme-color" content="#1e1e1e"><link rel="manifest" href="manifest.webmanifest?v=20261031001917"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Focus Line"><link rel="icon" href="icons/icon-192.png?v=20261031001917"><link rel="apple-touch-icon" href="icons/icon-180.png?v=20261031001917"></head><body><title>Focus Line 関東</title>
 
 <meta name="apple-mobile-web-app-title" content="Focus Line">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -4627,7 +4627,18 @@ const fetchBuf = url => fetch(url).then(r => { if (!r.ok) throw new Error(r.stat
 // inverter (see vvvf) while powering or braking, and the rail joints. Rails are 25 m long; each joint is struck by every
 // axle of the car in turn (bogie axles 2.1 m apart, bogies 13.8 m apart): a higher "gatan" from the front bogie, a lower
 // "goton" from the rear one. Joints are placed by distance travelled, so they start slow as the train moves off.
-const AXLES = [[0, .9, 0], [2.1, 1, 0], [13.8, .55, 1], [15.9, .6, 1]];
+// The whole train goes over every joint, axle by axle. Cars are 20 m long with their bogies 13.8 m apart and the two
+// axles of a bogie 2.1 m apart, so the axles fall at 2.05, 4.15, 15.85 and 17.95 m along each car. The listener sits
+// 6.5 m into a car, over the front bogie. What reaches the seat: the bogie underneath, loud and full; the pair at the
+// near coupling (the last bogie of the car ahead and the first of this one, 4 m apart) as the famous "ta-tan ta-tan";
+// the same again at the far coupling, quieter and duller with the length of the car between. Each entry: the axle's
+// distance from the seat (m, negative ahead), how loud it is, and how much of the top survives (lowpass, Hz).
+const AXLES = (() => {
+  const a = [];
+  for (let car = -2; car <= 2; car++) for (const x of [2.05, 4.15, 15.85, 17.95]) { const d = car * 20 + x - 6.5; if (Math.abs(d) < 32) a.push(d); }
+  const near = 1 / (1 + Math.pow(2.35 / 4.5, 1.6));
+  return a.sort((p, q) => p - q).map(d => { const ad = Math.abs(d); return [d, 1 / (1 + Math.pow(ad / 4.5, 1.6)) / near, 3200 / (1 + ad / 3.2)]; });
+})();
 // VVVF inverter, simulated rather than imitated: a triangle carrier at fc is compared with the motor's sine reference
 // at f0 (about 1.15 Hz per km/h) for two of the three phases, giving the stepped line voltage the inverter really puts
 // out. Its ripple (that voltage minus the smooth sine it stands for) is what makes the motor hum, so that is what we play.
@@ -4773,33 +4784,53 @@ function vvvf(v, tab = VVVF) {
     lo = hi;
   }
 }
-// the inverter as a sample-by-sample generator; runStep sets f0, fc, n and m, which glide over each block
-function inverterNode(c) {
-  const node = c.createScriptProcessor(1024, 1, 1), TAU = Math.PI * 2, sr = c.sampleRate;
-  const P = node.p = {f0: 1, fc: 260, n: 'a', m: .06, g: 1}, cur = {f0: 1, fc: 260, m: .06, g: 1};
-  // a train has several motor cars, each with its own inverter: the one under the seat is loud, the others further
-  // off and never quite in step (their wheels wear to slightly different sizes, their carriers drift apart), which is
-  // what gives the real sound its slow beating
-  const V = [{k: 1, kf: 1, g: 1}, {k: 1.0016, kf: 1.0042, g: .55}, {k: .9987, kf: .9969, g: .35}].map(v => Object.assign(v, {p0: Math.random(), pc: Math.random(), rip: 0}));
-  const tri = x => 4 * Math.abs(x - Math.floor(x + .5)) - 1;
-  node.onaudioprocess = e => {
-    const out = e.outputBuffer.getChannelData(0), len = out.length, sync = P.n !== 'a';
-    const df0 = (P.f0 - cur.f0) / len, dfc = (P.fc - cur.fc) / len, dm = (P.m - cur.m) / len, dg = (P.g - cur.g) / len;
-    for (let i = 0; i < len; i++) {
-      cur.f0 += df0; cur.fc += dfc; cur.m += dm; cur.g += dg;
-      let o = 0;
-      for (const v of V) {
-        v.p0 = (v.p0 + cur.f0 * v.k / sr) % 1;
-        v.pc = sync ? (v.p0 * P.n) % 1 : (v.pc + cur.fc * v.kf / sr) % 1;
-        const ru = cur.m * Math.sin(TAU * v.p0), rv = cur.m * Math.sin(TAU * (v.p0 - 1 / 3)), carrier = tri(v.pc);
-        const line = ((ru > carrier ? 1 : -1) - (rv > carrier ? 1 : -1)) / 2;
-        // the coil current follows the voltage ripple sluggishly (a leaky integrator), which takes the harsh edge off
-        v.rip = v.rip * .985 + (line - Math.min(1, cur.m) * (Math.sin(TAU * v.p0) - Math.sin(TAU * (v.p0 - 1 / 3))) / 2) * .12;
-        o += v.rip * v.g;
+// the inverter as a sample-by-sample generator; runStep sets f0, fc, n and m, which glide over each block.
+// A train has several motor cars, each with its own inverter: the one under the seat is loud, the others further off
+// and never quite in step (their wheels wear to slightly different sizes, their carriers drift apart), which is what
+// gives the real sound its slow beating.
+function invState() {
+  return {cur: {f0: 1, fc: 260, m: .06, g: 1},
+    V: [{k: 1, kf: 1, g: 1}, {k: 1.0016, kf: 1.0042, g: .55}, {k: .9987, kf: .9969, g: .35}].map(v => Object.assign(v, {p0: Math.random(), pc: Math.random(), rip: 0, hp: 0}))};
+}
+// The switching is worked out OS times per output sample: a switch edge falls between samples, and comparing only at
+// the sample instants would put every edge on the sample grid, which folds the carrier's harmonics back down as a gritty
+// hiss under the tone. Averaging the sub-samples places each edge to within a fraction of a sample (a band-limited edge).
+const INV_OS = 8, TAU = Math.PI * 2;
+function invProcess(S, P, out, sr) {
+  const len = out.length, sync = P.n !== 'a', cur = S.cur, step = 1 / INV_OS;
+  const df0 = (P.f0 - cur.f0) / len, dfc = (P.fc - cur.fc) / len, dm = (P.m - cur.m) / len, dg = (P.g - cur.g) / len;
+  for (let i = 0; i < len; i++) {
+    cur.f0 += df0; cur.fc += dfc; cur.m += dm; cur.g += dg;
+    const m = cur.m, mi = Math.min(1, m);
+    let o = 0;
+    for (const v of S.V) {
+      const d0 = cur.f0 * v.k / sr, dc = cur.fc * v.kf / sr;
+      // the references move little within a sample: take them at both ends and interpolate across the sub-samples
+      const a0 = TAU * v.p0, a1 = TAU * (v.p0 + d0), u0 = Math.sin(a0), u1 = Math.sin(a1), w0 = Math.sin(a0 - TAU / 3), w1 = Math.sin(a1 - TAU / 3);
+      let line = 0;
+      for (let s = 0; s < INV_OS; s++) {
+        const k = (s + .5) * step, p0 = v.p0 + d0 * k;
+        const pc = sync ? (p0 * P.n) % 1 : (v.pc + dc * k) % 1, carrier = 4 * Math.abs(pc - Math.floor(pc + .5)) - 1;
+        const ru = m * (u0 + (u1 - u0) * k), rv = m * (w0 + (w1 - w0) * k);
+        line += (ru > carrier ? 1 : -1) - (rv > carrier ? 1 : -1);
       }
-      out[i] = o * cur.g * .62;
+      line *= .5 * step;
+      v.p0 = (v.p0 + d0) % 1; if (!sync) v.pc = (v.pc + dc) % 1;
+      // the coil current follows the voltage ripple sluggishly (a leaky integrator), which takes the harsh edge off;
+      // the ripple is the switched voltage less the smooth sine it stands for
+      const ref = mi * ((u0 + u1) - (w0 + w1)) / 4;
+      v.rip = v.rip * .985 + (line - ref) * .12;
+      // a DC blocker: the integrator drifts when the two halves of a few-pulse wave are uneven
+      v.hp = v.hp * .9995 + v.rip * .0005;
+      o += (v.rip - v.hp) * v.g;
     }
-  };
+    out[i] = o * cur.g * .62;
+  }
+}
+function inverterNode(c) {
+  const node = c.createScriptProcessor(1024, 1, 1), S = invState(), sr = c.sampleRate;
+  const P = node.p = {f0: 1, fc: 260, n: 'a', m: .06, g: 1};
+  node.onaudioprocess = e => invProcess(S, P, e.outputBuffer.getChannelData(0), sr);
   return node;
 }
 const BRAKE = 3.6;                    // km/h per second, a normal service brake
@@ -4879,14 +4910,15 @@ function runStart(sid = sndOf(st.inv.skin)) {
   const corr = c.createOscillator(), cg = c.createGain(); corr.type = 'triangle'; cg.gain.value = 0; corr.connect(cg).connect(out); corr.start();
   // brake squeal in the last seconds before the stop
   const sq = c.createOscillator(), sg = c.createGain(); sq.type = 'triangle'; sq.frequency.value = 2300; sg.gain.value = 0; sq.connect(sg).connect(out); sq.start();
-  const jbus = c.createGain(), jfar = c.createBiquadFilter(); jbus.gain.value = 3.6; jfar.type = 'lowpass'; jfar.frequency.value = 260; jbus.connect(out); jfar.connect(out);
+  const jbus = c.createGain(); jbus.gain.value = 3.6; jbus.connect(out);
+  const jir = [0, 1, 2, 3, 4, 5].map(k => jointIR(c, k + 1));
   // a diesel engine, built from its firing strokes (see engineNode), muffled by the floor; it idles while the car stands
   const eng = engineNode(c), elp = c.createBiquadFilter(), eg = c.createGain();
   elp.type = 'lowpass'; elp.frequency.value = 900; elp.Q.value = .5; eg.gain.value = 0; eng.connect(elp).connect(eg).connect(out);
   // wind over the body at high speed (the shinkansen)
   const ab = c.createBiquadFilter(), ag = c.createGain(); ab.type = 'bandpass'; ab.frequency.value = 1700; ab.Q.value = .5; ag.gain.value = 0;
   const hit = noiseBuf(c, .5), air = noiseBuf(c, 2.5), srcs = [loop(noiseBuf(c, 4, true), lp, rg), loop(noiseBuf(c, 3), bp, wg), loop(noiseBuf(c, 3.5), ab, ag), loop(noiseBuf(c, 2.7), rb, rbg), gear, gear2, wob, corr, sq];
-  run = {c, out, lp, rg, wg, bp, ab, ag, rb, rbg, corr, cg, twet, vg, inv, gear, gear2, gg, wobg, sq, sg, eng, elp, eg, hornAt: c.currentTime + 40 + Math.random() * 60, hit, air, jbus, jfar, srcs, sid, snd: SND[sid], env: LINE_ENV.std, sp: 0, target: 0, arrAt: null, braking: false, mode: '', pos: 0, ev: [Math.random() * 25, 0], chuff: 0, whistled: false, squealAt: 0, last: c.currentTime};
+  run = {c, out, lp, rg, wg, bp, ab, ag, rb, rbg, corr, cg, twet, vg, inv, gear, gear2, gg, wobg, sq, sg, eng, elp, eg, hornAt: c.currentTime + 40 + Math.random() * 60, hit, air, jbus, jir, srcs, sid, snd: SND[sid], env: LINE_ENV.std, sp: 0, target: 0, arrAt: null, braking: false, mode: '', pos: 0, jlen: 0, ax: [], chuff: 0, whistled: false, squealAt: 0, last: c.currentTime};
   run.timer = setInterval(runStep, 100);
 }
 function runStop() {
@@ -4910,25 +4942,47 @@ function thump(r, t, hz, gain, len) {                  // a falling low sine: th
 }
 // A rail joint, as heard inside the car. The wheel drops across the gap and strikes the next rail: a sharp, very short
 // impact that sets ringing the things it can reach. Inside, the car body and floor answer with low, short booms
-// (around 50–230 Hz: the heavy "don"), the steel wheel with a few higher, unrelated tones (the "kan"), and the impact
-// itself is a dry click. The two axles of a bogie strike 2.1 m apart ("ta-tan"); the bogie under the listener is loud and
-// bright, the one at the far end of the car is quieter and muffled by the length of the car. Harder at higher speed.
-// Tuned low and long so it reads as a heavy mass being shaken rather than something struck: the lowest boom sags in pitch
-// as it rings, and the steel is only a faint edge on top.
+// (around 35–170 Hz: the heavy "don"), the steel wheel with a few higher, unrelated tones (the "kan"), and the impact
+// itself is a dry click with a little rattle of the bogie frame. Both rails have their joints side by side, so each
+// axle strikes twice, left and right, a few milliseconds apart. Harder and brighter at higher speed.
+// The strike is worked out once, sample by sample, into a few slightly different recordings (no two joints, wheels or
+// rails are quite alike), and each axle plays one through the distance it is from the seat.
 const BODY = [[34, 1.3, .5], [51, 1, .4], [76, .7, .3], [113, .45, .22], [170, .22, .14]];
-const WHEEL = [[520, .05, .08], [980, .03, .06]];
-function mode(r, t, hz, gain, len) {           // one resonance: a sine struck at t that dies away
-  const c = r.c, o = c.createOscillator(), g = c.createGain();
-  o.frequency.setValueAtTime(hz * 1.08, t); o.frequency.exponentialRampToValueAtTime(hz * (hz < 60 ? .85 : 1), t + len * .8);
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + .008); g.gain.exponentialRampToValueAtTime(.0005, t + len);
-  o.connect(g).connect(r.jbus); o.start(t); o.stop(t + len + .02);
+const WHEEL = [[520, .05, .08], [980, .03, .06], [1730, .012, .035]];
+function jointIR(c, seed) {
+  const sr = c.sampleRate, len = Math.floor(sr * .62), b = c.createBuffer(1, len, sr), d = b.getChannelData(0);
+  let x = seed * 9301 + 49297; const rnd = () => (x = (x * 9301 + 49297) % 233280) / 233280;
+  const j = .95 + rnd() * .1;
+  for (const [hz, a, dur] of BODY.concat(WHEEL)) {
+    // each mode: a struck sine dying away; the lowest sag in pitch as they ring (the springs give under the blow)
+    const f0 = hz * j * (1 + (rnd() - .5) * .04), sag = hz < 60 ? .85 : 1, k = Math.log(2000) / dur;
+    let ph = rnd() * .3;
+    for (let i = 0; i < len; i++) {
+      const t = i / sr; if (t > dur * 1.1) break;
+      const f = f0 * (1.08 - (1.08 - sag) * Math.min(1, t / (dur * .8)));
+      ph += TAU * f / sr;
+      d[i] += a * Math.sin(ph) * Math.exp(-k * t) * Math.min(1, t / .006);
+    }
+  }
+  // the impact: a dull knock (noise under 300 Hz, 50 ms) and a dry click with the frame's rattle (1–3 kHz, 15 ms)
+  let lp = 0, bp1 = 0, bp2 = 0;
+  for (let i = 0; i < Math.floor(sr * .06); i++) {
+    const t = i / sr, w = rnd() * 2 - 1;
+    lp += (w - lp) * (TAU * 300 / sr);
+    bp1 += (w - bp1) * .35; bp2 += (bp1 - bp2) * .35;
+    d[i] += lp * 2.2 * Math.exp(-t / .013) + (bp1 - bp2) * .5 * Math.exp(-t / .004);
+  }
+  return b;
 }
-function joint(r, t, gain, far) {
-  const j = .95 + Math.random() * .1;
-  if (far) { const sv = r.jbus; r.jbus = r.jfar; BODY.forEach(([hz, a, len]) => mode(r, t, hz * j, gain * a * .8, len)); WHEEL.forEach(([hz, a, len]) => mode(r, t, hz * j, gain * a * .3, len)); r.jbus = sv; return; }
-  BODY.forEach(([hz, a, len]) => mode(r, t, hz * j, gain * a, len));
-  WHEEL.forEach(([hz, a, len]) => mode(r, t, hz * j, gain * a, len));
-  burst(r, t, 'lowpass', 300, .7, gain * .9, .05);            // the dull knock of the impact
+function joint(r, t, gain, cut, bright) {
+  const c = r.c, gap = .001 + Math.random() * .004;        // the two rails' joints, a few cm apart
+  for (const [side, dt] of [[-1, 0], [1, gap]]) {
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(), pn = c.createStereoPanner();
+    s.buffer = r.jir[Math.floor(Math.random() * r.jir.length)]; s.playbackRate.value = .97 + Math.random() * .06;
+    f.type = 'lowpass'; f.frequency.value = cut * bright; f.Q.value = .5;
+    g.gain.value = gain * (.5 + Math.random() * .1); pn.pan.value = side * .45;
+    s.connect(f).connect(g).connect(pn).connect(r.jbus); s.start(t + dt); s.stop(t + dt + .65);
+  }
 }
 // Air. Japanese EMUs run on compressed air for their brakes and (on older cars) doors, and it is heard from the seat:
 //   - releasing the brake as the train starts: each car's brake cylinders exhaust in turn, a sharp "pshh" from under the
@@ -5196,16 +5250,20 @@ function runStep() {
     burst(r, at, 'bandpass', 700, .7, g, Math.min(.22, .08 + 1.5 / Math.max(1, ms)));
     burst(r, at, 'lowpass', 180, .7, g * .6, .1);
   }
-  for (let guard = 0; guard < 16; guard++) {
-    const [jp, i] = r.ev, at = jp + AXLES[i][0];
-    if (at > r.pos + ms * .25) break;
-    if (at > r.pos - ms * .1) {
-      const when = t + Math.max(0, at - r.pos) / ms, g = AXLES[i][1] * (.3 + .7 * Math.min(1, sp / 70)) * (.88 + Math.random() * .24) * ln.jg;
-      // tyres on a guideway or beam: a dull, low knock at each seam instead of steel ringing
-      if (ln.rubber) thump(r, when, 48, g * .55, .22); else joint(r, when, g, AXLES[i][2]);
-    }
-    r.ev = i + 1 < AXLES.length ? [jp, i + 1] : [jp + ln.joint, 0];
+  // every axle has its own next joint; they all share one grid of joints, laid afresh when the rail length changes
+  if (r.jlen !== ln.joint) {
+    r.jlen = ln.joint; const base = r.pos + Math.random() * ln.joint;
+    r.ax = AXLES.map(([d]) => { let p = base + d; while (p < r.pos) p += ln.joint; while (p - ln.joint >= r.pos) p -= ln.joint; return p; });
   }
+  const bright = .55 + .45 * Math.min(1, sp / 80);
+  AXLES.forEach(([, ag, cut], i) => {
+    for (let guard = 0; guard < 4 && r.ax[i] <= r.pos + ms * .25; guard++, r.ax[i] += ln.joint) {
+      if (r.ax[i] < r.pos - ms * .1) continue;
+      const when = t + Math.max(0, r.ax[i] - r.pos) / ms, g = ag * (.3 + .7 * Math.min(1, sp / 70)) * (.88 + Math.random() * .24) * ln.jg;
+      // tyres on a guideway or beam: a dull, low knock at each seam instead of steel ringing
+      if (ln.rubber) { if (ag > .3) thump(r, when, 48, g * .55, .22); } else joint(r, when, g, cut, bright);
+    }
+  });
 }
 function runSound() {
   bgmTick();          // the music follows the same switches, and ducks with the announcements
@@ -5308,11 +5366,19 @@ function bgmStart() {
   send.connect(dl); dl.connect(dlp).connect(dr); dr.connect(fb).connect(dl); dl.connect(mg, 0, 0); dr.connect(mg, 0, 1);
   const tape = tapeChain(c);
   duck.connect(tape.input); mg.connect(dg).connect(tape.input);
-  tape.output.connect(out); tape.output.connect(verb).connect(wet).connect(out); out.connect(c.destination);
+  // the band (everything but the drums) breathes with the kick: pushed down a little on each beat, back up within a
+  // fraction of it, which locks bass, keys and pads to the groove
+  const pump = c.createGain(); pump.gain.value = 1; pump.connect(duck);
+  // the room gets no low end (it would only muddy the bass), and a gentle limiter at the end holds the peaks
+  const vhp = c.createBiquadFilter(); vhp.type = 'highpass'; vhp.frequency.value = 280;
+  const glue = c.createDynamicsCompressor(); glue.threshold.value = -14; glue.knee.value = 10; glue.ratio.value = 3; glue.attack.value = .01; glue.release.value = .18;
+  // the browser's compressor adds its own make-up gain: trimmed back so the music stays as loud as before
+  const trim = c.createGain(); trim.gain.value = .73;
+  tape.output.connect(glue); tape.output.connect(vhp).connect(verb).connect(wet).connect(glue); glue.connect(trim).connect(out); out.connect(c.destination);
   // the tape's own noise: a soft hiss, and now and then a crackle
   const hiss = c.createBufferSource(), hbp = c.createBiquadFilter(), hg = c.createGain(); hiss.buffer = noiseBuf(c, 4); hiss.loop = true;
   hbp.type = 'bandpass'; hbp.frequency.value = 5000; hbp.Q.value = .4; hg.gain.value = .0006; hiss.connect(hbp).connect(hg).connect(out); hiss.start();
-  bgm = {c, out, duck, send, dl, dr, tape, hiss, next: c.currentTime + .3};
+  bgm = {c, out, duck, pump, send, dl, dr, tape, hiss, next: c.currentTime + .3};
   bgmLoad(bgm, bgmNextTrack());
   bgm.timer = setInterval(bgmSchedule, 100);
 }
@@ -5352,7 +5418,7 @@ function wave(c, name, amps) { const k = '_w' + name; if (c[k]) return c[k]; con
 function bgmHit(kind, f, t, g0, pan, d, held) {
   const c = bgm.c, g = c.createGain(), pn = c.createStereoPanner ? c.createStereoPanner() : null;
   const dest = pn ? (g.connect(pn), pn) : g;
-  dest.connect(bgm.duck);
+  dest.connect(BGM_DRUMS.has(kind) ? bgm.duck : bgm.pump);
   if (d) { const sg = c.createGain(); sg.gain.value = d; dest.connect(sg).connect(bgm.send); }
   if (pn) pn.pan.value = pan || 0;
   const osc = (type, fr, at = t) => { const o = c.createOscillator(); if (typeof type === 'string') o.type = type; else o.setPeriodicWave(type); o.frequency.value = fr; o.detune.value = (Math.random() - .5) * 6; o.start(at); return o; };
@@ -5456,6 +5522,9 @@ function bgmHit(kind, f, t, g0, pan, d, held) {
     case 'arp': { const o = osc('square', f), fl = c.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = 1500; o.connect(fl).connect(g); o.stop(env(g, .004, g0, .22)); break; }
     case 'kick': { const o = osc('sine', 140); o.frequency.exponentialRampToValueAtTime(52, t + .08); o.connect(g); noise(.012, 'bandpass', 3000, 1).connect(g); o.stop(env(g, .002, g0 * .95, .24)); break; }     // a round, quick kick with a little click
     case 'clap': { for (const dd of [0, .011, .022]) { const n = noise(.05, 'bandpass', 1900, 1.1), ng = c.createGain(); ng.gain.setValueAtTime(1, t + dd); ng.gain.exponentialRampToValueAtTime(.001, t + dd + .05); n.connect(ng).connect(g); } env(g, .002, g0, .14); break; }
+    case 'tom': { const o = osc('sine', f), o2 = osc('sine', f * 1.5); o.frequency.exponentialRampToValueAtTime(f * .7, t + .18); o2.frequency.exponentialRampToValueAtTime(f, t + .1);
+      const g2 = c.createGain(); g2.gain.value = .25; o.connect(g); o2.connect(g2).connect(g); noise(.02, 'bandpass', 2000, 1).connect(g);
+      const end = env(g, .002, g0, .3); o.stop(end); o2.stop(end); break; }
     case 'brush': { const n = noise(.22, 'bandpass', 3000, .7); n.connect(g); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(g0, t + .06); g.gain.exponentialRampToValueAtTime(.0001, t + .2); break; }
     case 'shaker': { noise(.07, 'bandpass', 6500, 1).connect(g); env(g, .008, g0, .06); break; }
     case 'tap': { noise(.05, 'bandpass', 900 + Math.random() * 400, 3).connect(g); env(g, .001, g0, .06); break; }          // a fingertip on a wooden table
@@ -5469,12 +5538,22 @@ function bgmHit(kind, f, t, g0, pan, d, held) {
   }
 }
 const DEG = ch => parseInt(ch, 16);
+const BGM_DRUMS = new Set(['kick', 'clap', 'snap', 'shaker', 'tamb', 'conga', 'brush', 'tap', 'clock', 'tom', 'bird', 'room', 'rain']);
+const BGM_HELD = new Set(['drone', 'strings', 'voice', 'pedal', 'harmonium', 'glass', 'horn']);
+// how hard each step of the bar is played: the beat strongest, the off-beat eighths next, the sixteenths in between
+// lightest; a player never hits two notes quite alike
+const ACCENT = [1, .72, .84, .7, .96, .72, .84, .7, .98, .72, .84, .7, .95, .72, .86, .74];
 function bgmSchedule() {
   const b = bgm; if (!b) return;
   while (b.next < b.c.currentTime + .4) {
     const tr = b.tr, steps = tr.steps || 16, t = b.next, sec = Math.floor(b.bar / BAR_SECTION);
     if (sec >= tr.form.length) { b.next += b.spStep * steps; bgmLoad(b, bgmNextTrack()); continue; }
     const on = tr.form[sec], tp = tr.prog ? tr.prog[b.bar % tr.prog.length] : 0, dp = tr.dprog ? tr.dprog[b.bar % tr.dprog.length] : 0;
+    // the last bar of an eight-bar phrase (not the last of the piece): the band lifts its lead an octave halfway through
+    // the phrase, ends the phrase on the home note with a breath before the next, and the drummer plays a fill
+    const pb = b.bar % 8, phraseEnd = pb === 7 && sec < tr.form.length - 1, hasKick = Object.entries(tr.parts).some(([k, p]) => p.i === 'kick' && on.includes(k));
+    if (phraseEnd && hasKick && b.step >= 12) bgmHit('tom', [196, 165, 139, 110][b.step - 12], t, .07 * ACCENT[b.step], (b.step - 13.5) * .3);
+    const swing = (b.step % 2) * b.spStep * (tr.swing ?? .06);       // the off sixteenths sit a touch late
     for (const [k, part] of Object.entries(tr.parts)) {
       if (!on.includes(k)) continue;
       if (part.every && b.bar % part.every !== part.at) continue;              // a fill at the end of a phrase
@@ -5484,20 +5563,30 @@ function bgmSchedule() {
       if (ch === '?') { if (Math.random() < .45) continue; ch = '0246'[Math.floor(Math.random() * 4)]; }
       const long = ['drone', 'strings', 'voice'].includes(part.i);           // held for two bars
       if (long && b.bar % 2) continue;
+      const drum = BGM_DRUMS.has(part.i), lead = !drum && !part.harm && !part.chord && !BGM_HELD.has(part.i) && ch !== 'x';
+      if (lead && phraseEnd && b.step >= 12) continue;                          // the breath before the next phrase
       // degrees run through the scale; parts that follow the harmony move with the progression (diatonically)
       const sc = tr.scale, at = d => { const dd = d + (part.harm ? dp : 0); return sc[((dd % sc.length) + sc.length) % sc.length] + 12 * Math.floor(dd / sc.length) + 12 * (part.oct || 0) + tp; };
       let f;
       if (ch === 'x') f = midi(at(0) - (['drone', 'harmonium', 'pedal'].includes(part.i) ? 12 : 0));
-      else f = midi(at(DEG(ch)));
+      else {
+        let dg = DEG(ch);
+        if (lead && phraseEnd && b.step >= 8 && b.step < 12) dg = dg >= 7 ? 7 : 0;           // land on the home note
+        f = midi(at(dg)) * (lead && pb === 3 ? 2 : 1);
+      }
+      const vel = (drum || lead ? ACCENT[b.step] : 1) * (.9 + Math.random() * .2);
+      if (part.i === 'kick') {      // the band ducks under the kick
+        const pg = bgm.pump.gain; if (pg.cancelAndHoldAtTime) pg.cancelAndHoldAtTime(t); else { pg.cancelScheduledValues(t); pg.setValueAtTime(1, t); } pg.linearRampToValueAtTime(.85, t + .012); pg.setTargetAtTime(1, t + .03, b.spStep * .9);
+      }
       if (part.chord) {           // a chord on the degree: root, third, fifth and seventh of the scale
         const d0 = ch === 'x' ? 0 : DEG(ch);
-        [0, 2, 4, 6].forEach((k2, n2) => bgmHit(part.i, midi(at(d0 + k2)), t + n2 * .008, part.g * (n2 ? .8 : 1), (n2 - 1.5) * .5, part.d, part.len));
+        [0, 2, 4, 6].forEach((k2, n2) => bgmHit(part.i, midi(at(d0 + k2)), t + swing + n2 * .008, part.g * vel * (n2 ? .8 : 1), (n2 - 1.5) * .5, part.d, part.len));
         continue;
       }
       let pan = part.pan || 0;
       if (pan === 'alt') { b.alt[k] = !b.alt[k]; pan = b.alt[k] ? -.85 : .85; }
       else pan = Math.max(-.9, Math.min(.9, pan * 1.6));                       // spread the band wide across the stereo
-      bgmHit(part.i, f, t + (Math.random() - .5) * .014, part.g, pan, part.d, part.len);      // played by hand: a few ms either side
+      bgmHit(part.i, f, t + swing + (Math.random() - .5) * .012, part.g * vel, pan, part.d, part.len);      // played by hand: a few ms either side
     }
     if (tr.amb && b.step === 0 && Math.random() < (tr.amb === 'room' ? .6 : tr.amb === 'rain' ? .5 : .3))
       bgmHit(tr.amb, 0, t + Math.random() * b.spStep * 6, {bird: .005, room: .02, rain: .004, water: .006}[tr.amb], Math.random() * 1.4 - .7, tr.amb === 'bird' ? .3 : 0);
